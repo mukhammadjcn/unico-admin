@@ -4,20 +4,7 @@ import { UploadOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { AddShowroomConfig, getShopsConfig } from './service/api';
 import { OptionProps } from 'antd/es/mentions';
 import { useSearchParams } from 'react-router-dom';
-
-interface Ishop {
-  created_at: string;
-  description: string;
-  email: string;
-  facebook: string;
-  id: 2;
-  instagram: string;
-  logo: string;
-  name: string;
-  phone: string;
-  telegram: string;
-  updated_at: string;
-}
+import { Ishop } from './type';
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,26 +43,16 @@ function App() {
   // create a preview as a side effect, whenever selected file is changed
   const onSelectFile = (file: any) => {
     const formData = new FormData();
-
     formData.append('file', file);
     formData.append('shop', searchParams.get('shop') || '');
 
-    AddShowroomConfig(formData).then(() => {
-      setSelectedFile(file);
-    });
-  };
-  useEffect(() => {
-    if (!selectedFile) {
-      setPreview(undefined);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(selectedFile);
+    // Preview image
+    setSelectedFile(file);
+    const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
 
-    // free memory when ever this component is unmounted
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedFile]);
+    AddShowroomConfig(formData);
+  };
 
   return (
     <div className="home">
@@ -164,7 +141,10 @@ function App() {
               ))}
             </div>
 
-            <div className="products" style={{ flexGrow: 1 }}>
+            <div
+              className="products"
+              style={{ flexGrow: 1, height: 600, overflowY: 'scroll' }}
+            >
               {coorList.map((item, index) => (
                 <p key={index}>
                   {item.x}, {item.y}
