@@ -1,0 +1,17 @@
+.customOption {
+  gap: 12px;
+  display: flex;
+  align-items: center;
+}
+.customOption > img {
+  height: 48px;
+  width: 48px;
+  border-radius: 6px;
+}
+.customOption > h2 {
+  font-size: 18px;
+  font-weight: 500;
+}
+.customSelect .ant-select-selector {
+  height: 64px !important;
+}

@@ -1,12 +1,20 @@
-import { Button, Select, Upload } from 'antd';
+import { Button, Divider, Form, Input, Modal, Select, Upload } from 'antd';
 import { useEffect, useState } from 'react';
 import { UploadOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import { AddShowroomConfig, getShopsConfig } from './service/api';
+import {
+  AddShowroomConfig,
+  EditShowroom,
+  GetProductsConfig,
+  GetShowroomConfig,
+  getShopsConfig,
+} from './service/api';
 import { OptionProps } from 'antd/es/mentions';
 import { useSearchParams } from 'react-router-dom';
 import { Ishop } from './type';
+import './main.css';
 
 function App() {
+  const [form] = Form.useForm();
   const [searchParams, setSearchParams] = useSearchParams();
   const [preview, setPreview] = useState<string>();
   const [selectedFile, setSelectedFile] = useState();
@@ -14,6 +22,9 @@ function App() {
   const [coor, setCoors] = useState<{ x: number; y: number }>();
   const [coorList, setCoorsList] = useState<{ x: number; y: number }[]>([]);
   const [shop] = useState(searchParams.get('shop'));
+  const [banner, setBanner] = useState<any>({});
+  const [products, setProducts] = useState<any>([]);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const handleMakeParams = (key: any, value: any) => {
     if (value) {
@@ -22,7 +33,6 @@ function App() {
     } else searchParams.delete(key);
     setSearchParams(searchParams);
   };
-
   const getShops = () => {
     getShopsConfig().then(({ data }) =>
       setShops(
@@ -36,22 +46,84 @@ function App() {
       )
     );
   };
+  const getBanner = () => {
+    searchParams.get('bannerId') &&
+      GetShowroomConfig(searchParams.get('bannerId')).then(({ data }) => {
+        setBanner(data);
+      });
+  };
+  const getProducts = async (id?: number) => {
+    const { data } = await GetProductsConfig(searchParams.get('shop') || id);
+    setProducts(
+      data?.results.reduce(
+        (all: any, current: any) => [
+          ...all,
+          {
+            value: current?.id,
+            label: (
+              <div className="customOption">
+                <img
+                  src={'https://api.livein.uz' + current?.images[0]}
+                  alt=""
+                />
+                <h2>{current?.name}</h2>
+              </div>
+            ),
+          },
+        ],
+        []
+      )
+    );
+  };
   useEffect(() => {
     getShops();
+    getBanner();
+    getProducts();
   }, []);
 
   // create a preview as a side effect, whenever selected file is changed
   const onSelectFile = (file: any) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('banner', file);
     formData.append('shop', searchParams.get('shop') || '');
+    formData.append(
+      'products',
+      JSON.stringify([
+        {
+          x: 0,
+          y: 0,
+          product: 30,
+        },
+      ])
+    );
 
     // Preview image
     setSelectedFile(file);
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
+    AddShowroomConfig(formData).then((res) => {
+      handleMakeParams('bannerId', res.data?.id);
+      setBanner(res.data);
+    });
+  };
 
-    AddShowroomConfig(formData);
+  // Send products to apis
+  const SendProductBanner = async (val: any) => {
+    const olderProducts = banner?.products?.reduce(
+      (all: any, current: any) => [
+        ...all,
+        {
+          x: current?.x,
+          y: current?.y,
+          product: current?.product?.id,
+        },
+      ],
+      []
+    );
+    await EditShowroom(searchParams.get('bannerId'), {
+      products: [...olderProducts, val],
+    });
+    getBanner();
   };
 
   return (
@@ -85,7 +157,10 @@ function App() {
           style={{ width: 200 }}
           defaultValue={shop && Number(shop)}
           placeholder="Select the shop"
-          onChange={(id) => handleMakeParams('shop', id)}
+          onChange={(id) => {
+            handleMakeParams('shop', id);
+            id && getProducts(id);
+          }}
         />
       </div>
       <div
@@ -97,7 +172,7 @@ function App() {
           alignItems: 'flex-start',
         }}
       >
-        {selectedFile ? (
+        {banner?.banner ? (
           <>
             <div
               style={{
@@ -113,15 +188,19 @@ function App() {
 
                   const x = ((xClick - 16) / 1000) * 100 - 1.5;
                   const y = (yClick / 600) * 100 - 12;
-                  setCoors({
+
+                  let result = {
                     x: x < 0 ? 0 : x,
                     y: y < 0 ? 0 : y,
-                  });
+                  };
+                  setCoors(result);
                 }}
                 onClick={() => {
                   coor && setCoorsList([...coorList, coor]);
+                  form.setFieldsValue(coor);
+                  setModalOpen(true);
                 }}
-                src={preview}
+                src={banner?.banner}
                 style={{
                   width: '1000px',
                   height: '600px',
@@ -129,33 +208,143 @@ function App() {
                 }}
               />
 
-              {coorList.map((cors, index) => (
-                <PlusCircleOutlined
-                  key={index}
-                  style={{
-                    position: 'absolute',
-                    top: `${cors.y}%`,
-                    left: `${cors.x}%`,
-                  }}
-                />
-              ))}
+              {banner?.products.map((item: any) => {
+                if (item?.x !== 0 && item?.y !== 0) {
+                  return (
+                    <PlusCircleOutlined
+                      key={item?.id}
+                      style={{
+                        position: 'absolute',
+                        top: `${item.y}%`,
+                        left: `${item.x}%`,
+                      }}
+                    />
+                  );
+                }
+              })}
             </div>
 
             <div
               className="products"
               style={{ flexGrow: 1, height: 600, overflowY: 'scroll' }}
             >
-              {coorList.map((item, index) => (
-                <p key={index}>
-                  {item.x}, {item.y}
-                </p>
-              ))}
+              {banner?.products.map((item: any) => {
+                if (item?.x !== 0 && item?.y !== 0) {
+                  return (
+                    <p key={item?.id}>
+                      ({item.x}, {item.y}) -{item?.product?.name}
+                    </p>
+                  );
+                }
+              })}
             </div>
           </>
         ) : (
-          <h1 style={{ textAlign: 'center', flexGrow: 1 }}>Rasmni tanlang !</h1>
+          <>
+            {selectedFile ? (
+              <>
+                <div
+                  style={{
+                    display: 'inline-block',
+                    position: 'relative',
+                    margin: '16px auto',
+                  }}
+                >
+                  <img
+                    onMouseMove={(e) => {
+                      const xClick = e.clientX - e.currentTarget.offsetLeft;
+                      const yClick = e.clientY - e.currentTarget.offsetTop;
+
+                      const x = ((xClick - 16) / 1000) * 100 - 1.5;
+                      const y = (yClick / 600) * 100 - 12;
+
+                      let result = {
+                        x: x < 0 ? 0 : x,
+                        y: y < 0 ? 0 : y,
+                      };
+                      setCoors(result);
+                    }}
+                    onClick={() => {
+                      coor && setCoorsList([...coorList, coor]);
+                      form.setFieldsValue(coor);
+                      setModalOpen(true);
+                    }}
+                    src={preview || banner?.banner}
+                    style={{
+                      width: '1000px',
+                      height: '600px',
+                      objectFit: 'cover',
+                    }}
+                  />
+
+                  {coorList.map((cors, index) => (
+                    <PlusCircleOutlined
+                      key={index}
+                      style={{
+                        position: 'absolute',
+                        top: `${cors.y}%`,
+                        left: `${cors.x}%`,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                <div
+                  className="products"
+                  style={{ flexGrow: 1, height: 600, overflowY: 'scroll' }}
+                >
+                  {coorList.map((item, index) => (
+                    <p key={index}>
+                      {item.x}, {item.y}
+                    </p>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <h1 style={{ textAlign: 'center', flexGrow: 1 }}>
+                Rasmni tanlang !
+              </h1>
+            )}
+          </>
         )}
       </div>
+
+      <Modal
+        footer={null}
+        open={isModalOpen}
+        title="Yangi maxsulot qo'shish"
+        onCancel={() => setModalOpen(false)}
+      >
+        <Form form={form} layout="vertical" onFinish={SendProductBanner}>
+          <Form.Item
+            name="x"
+            label="X coordinatasi"
+            style={{ width: '48%', display: 'inline-block', marginRight: 16 }}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            name="y"
+            label="Y coordinatasi"
+            style={{ width: '48%', display: 'inline-block' }}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item name="product" label="Maxsulotni tanlang">
+            <Select
+              allowClear
+              options={products}
+              className="customSelect"
+              placeholder="Maxsulotni tanlagn"
+            />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

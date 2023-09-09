@@ -14,7 +14,6 @@ export let headers = {
 export let headersMultipart = {
   'X-Requested-With': 'XMLHttpRequest',
   'Content-Type': 'multipart/form-data',
-  Authorization: token ? `Token ${token}` : '',
 };
 
 // --------------------------------------
@@ -43,3 +42,13 @@ axiosInstanceMultipart.interceptors.response.use(
     throw error;
   }
 );
+
+export const getCookie = (name: string) => {
+  var pattern = RegExp(name + '=.[^;]*');
+  var matched = document.cookie.match(pattern);
+  if (matched) {
+    var cookie = matched[0].split('=');
+    return cookie[1];
+  }
+  return false;
+};
