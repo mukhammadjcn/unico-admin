@@ -44,11 +44,6 @@ axiosInstanceMultipart.interceptors.response.use(
 );
 
 export const getCookie = (name: string) => {
-  var pattern = RegExp(name + '=.[^;]*');
-  var matched = document.cookie.match(pattern);
-  if (matched) {
-    var cookie = matched[0].split('=');
-    return cookie[1];
-  }
-  return '';
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
 };

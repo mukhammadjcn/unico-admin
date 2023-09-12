@@ -175,46 +175,48 @@ function App() {
 
   return (
     <div className="home">
-      <div
-        style={{
-          gap: 16,
-          marginTop: 16,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Upload
-          beforeUpload={onSelectFile}
-          showUploadList={false}
-          accept="image/*"
-        >
-          <Button
-            type="primary"
-            icon={<UploadOutlined />}
-            disabled={!searchParams.get('shop')}
-          >
-            Asosiy rasmni yuklash
-          </Button>
-        </Upload>
-
-        <Select
-          allowClear
-          options={shops}
-          style={{ width: 200 }}
-          defaultValue={shop && Number(shop)}
-          placeholder="Select the shop"
-          onChange={(id) => {
-            handleMakeParams('shop', id);
-            id && getProducts(id);
-
-            handleMakeParams('bannerId', '');
-            setSelectedFile('');
-            setPreview('');
-            setBanner('');
+      {!searchParams.get('bannerId') && (
+        <div
+          style={{
+            gap: 16,
+            marginTop: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-        />
-      </div>
+        >
+          <Upload
+            beforeUpload={onSelectFile}
+            showUploadList={false}
+            accept="image/*"
+          >
+            <Button
+              type="primary"
+              icon={<UploadOutlined />}
+              disabled={!searchParams.get('shop')}
+            >
+              Asosiy rasmni yuklash
+            </Button>
+          </Upload>
+
+          <Select
+            allowClear
+            options={shops}
+            style={{ width: 200 }}
+            defaultValue={shop && Number(shop)}
+            placeholder="Select the shop"
+            onChange={(id) => {
+              handleMakeParams('shop', id);
+              id && getProducts(id);
+
+              handleMakeParams('bannerId', '');
+              setSelectedFile('');
+              setPreview('');
+              setBanner('');
+            }}
+          />
+        </div>
+      )}
 
       <div
         style={{
