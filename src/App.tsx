@@ -128,10 +128,12 @@ function App() {
     setSelectedFile(file);
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
-    AddShowroomConfig(formData).then((res) => {
-      handleMakeParams('bannerId', res.data?.id);
-      setBanner(res.data);
-    });
+    AddShowroomConfig(formData, searchParams.get('session_id') || '').then(
+      (res) => {
+        handleMakeParams('bannerId', res.data?.id);
+        setBanner(res.data);
+      }
+    );
   };
 
   // Send products to apis
@@ -148,9 +150,13 @@ function App() {
       []
     );
 
-    await AddProductsShowroom(searchParams.get('bannerId'), {
-      products: [...olderProducts, val],
-    });
+    await AddProductsShowroom(
+      searchParams.get('bannerId'),
+      {
+        products: [...olderProducts, val],
+      },
+      searchParams.get('session_id') || ''
+    );
     getBanner();
     setModalOpen(false);
     form.resetFields();
@@ -167,9 +173,13 @@ function App() {
       }
     });
 
-    await AddProductsShowroom(searchParams.get('bannerId'), {
-      products: result,
-    });
+    await AddProductsShowroom(
+      searchParams.get('bannerId'),
+      {
+        products: result,
+      },
+      searchParams.get('session_id') || ''
+    );
     getBanner();
   };
 

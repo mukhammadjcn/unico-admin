@@ -1,15 +1,11 @@
 import { CreateFunc, EditFunc, GetFunc } from '../config';
 import { CreateFuncMulti } from '../config/multipart';
-import { getCookie } from '../host';
 
 export const getShopsConfig = () => {
   return GetFunc(`/shops/shop`);
 };
-export const AddShowroomConfig = (data: any) => {
-  return CreateFuncMulti(
-    `/shops/showrooms?session_id=${getCookie('sessionid')}`,
-    data
-  );
+export const AddShowroomConfig = (data: any, cookie: string) => {
+  return CreateFuncMulti(`/shops/showrooms?session_id=${cookie}`, data);
 };
 export const GetShowroomConfig = (id: any) => {
   return GetFunc(`/shops/showrooms/${id}`);
@@ -20,9 +16,6 @@ export const GetProductsConfig = (id: any) => {
 export const EditShowroom = (id: any, data: any) => {
   return EditFunc(`shops/showrooms/${id}`, data, 'PATCH');
 };
-export const AddProductsShowroom = (id: any, data: any) => {
-  return CreateFunc(
-    `shops/${id}/showroom-products?session_id=${getCookie('sessionid')}`,
-    data
-  );
+export const AddProductsShowroom = (id: any, data: any, cookie: string) => {
+  return CreateFunc(`shops/${id}/showroom-products?session_id=${cookie}`, data);
 };

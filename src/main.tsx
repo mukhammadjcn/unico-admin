@@ -10,7 +10,7 @@ import { createBrowserHistory } from 'history';
 const history = createBrowserHistory({ window });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <HistoryRouter history={history} basename="/">
+  <HistoryRouter history={history} basename="/showroom">
     <Routes>
       <Route index element={<App />} />
     </Routes>
