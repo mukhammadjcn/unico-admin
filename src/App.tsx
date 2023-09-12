@@ -1,9 +1,18 @@
-import { Button, Divider, Form, Input, Modal, Select, Upload } from 'antd';
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Popover,
+  Select,
+  Statistic,
+  Upload,
+} from 'antd';
 import { useEffect, useState } from 'react';
 import { UploadOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import {
+  AddProductsShowroom,
   AddShowroomConfig,
-  EditShowroom,
   GetProductsConfig,
   GetShowroomConfig,
   getShopsConfig,
@@ -11,13 +20,14 @@ import {
 import { OptionProps } from 'antd/es/mentions';
 import { useSearchParams } from 'react-router-dom';
 import { Ishop } from './type';
+import { DeleteOutlined } from '@ant-design/icons';
 import './main.css';
 
 function App() {
   const [form] = Form.useForm();
   const [searchParams, setSearchParams] = useSearchParams();
   const [preview, setPreview] = useState<string>();
-  const [selectedFile, setSelectedFile] = useState();
+  const [selectedFile, setSelectedFile] = useState<any>();
   const [shops, setShops] = useState<OptionProps[]>([]);
   const [coor, setCoors] = useState<{ x: number; y: number }>();
   const [coorList, setCoorsList] = useState<{ x: number; y: number }[]>([]);
@@ -25,6 +35,23 @@ function App() {
   const [banner, setBanner] = useState<any>({});
   const [products, setProducts] = useState<any>([]);
   const [isModalOpen, setModalOpen] = useState(false);
+
+  const DotPopover = (props: any) => {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {props?.colors?.map((item: string) => (
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 50,
+              background: item,
+            }}
+          ></div>
+        ))}
+      </div>
+    );
+  };
 
   const handleMakeParams = (key: any, value: any) => {
     if (value) {
@@ -120,8 +147,28 @@ function App() {
       ],
       []
     );
-    await EditShowroom(searchParams.get('bannerId'), {
+
+    await AddProductsShowroom(searchParams.get('bannerId'), {
       products: [...olderProducts, val],
+    });
+    getBanner();
+    setModalOpen(false);
+    form.resetFields();
+  };
+  const DeleteProducts = async (id: number) => {
+    const result: { x: any; y: any; product: any }[] = [];
+    banner?.products?.forEach((item: any) => {
+      if (item?.id !== id) {
+        result.push({
+          x: item?.x,
+          y: item?.y,
+          product: item?.product?.id,
+        });
+      }
+    });
+
+    await AddProductsShowroom(searchParams.get('bannerId'), {
+      products: result,
     });
     getBanner();
   };
@@ -160,9 +207,15 @@ function App() {
           onChange={(id) => {
             handleMakeParams('shop', id);
             id && getProducts(id);
+
+            handleMakeParams('bannerId', '');
+            setSelectedFile('');
+            setPreview('');
+            setBanner('');
           }}
         />
       </div>
+
       <div
         style={{
           gap: 24,
@@ -211,14 +264,19 @@ function App() {
               {banner?.products.map((item: any) => {
                 if (item?.x !== 0 && item?.y !== 0) {
                   return (
-                    <PlusCircleOutlined
-                      key={item?.id}
-                      style={{
-                        position: 'absolute',
-                        top: `${item.y}%`,
-                        left: `${item.x}%`,
-                      }}
-                    />
+                    <Popover
+                      content={<DotPopover {...item.product} />}
+                      title={item?.product?.name}
+                    >
+                      <PlusCircleOutlined
+                        key={item?.id}
+                        style={{
+                          position: 'absolute',
+                          top: `${item.y}%`,
+                          left: `${item.x}%`,
+                        }}
+                      />
+                    </Popover>
                   );
                 }
               })}
@@ -231,8 +289,33 @@ function App() {
               {banner?.products.map((item: any) => {
                 if (item?.x !== 0 && item?.y !== 0) {
                   return (
-                    <p key={item?.id}>
-                      ({item.x}, {item.y}) -{item?.product?.name}
+                    <p
+                      key={item?.id}
+                      style={{ fontSize: 24, fontFamily: 'sans-serif' }}
+                    >
+                      (
+                      {
+                        <Statistic
+                          precision={2}
+                          value={item.x}
+                          style={{ display: 'inline-block' }}
+                        />
+                      }
+                      ,{' '}
+                      {
+                        <Statistic
+                          precision={2}
+                          value={item.y}
+                          style={{ display: 'inline-block' }}
+                        />
+                      }
+                      ) - {item?.product?.name}{' '}
+                      <Button
+                        danger
+                        type="primary"
+                        icon={<DeleteOutlined />}
+                        onClick={() => DeleteProducts(item.id)}
+                      />
                     </p>
                   );
                 }

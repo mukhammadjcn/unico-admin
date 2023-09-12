@@ -50,5 +50,5 @@ export const getCookie = (name: string) => {
     var cookie = matched[0].split('=');
     return cookie[1];
   }
-  return false;
+  return '';
 };

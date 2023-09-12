@@ -1,4 +1,4 @@
-import { EditFunc, GetFunc } from '../config';
+import { CreateFunc, EditFunc, GetFunc } from '../config';
 import { CreateFuncMulti } from '../config/multipart';
 import { getCookie } from '../host';
 
@@ -19,4 +19,10 @@ export const GetProductsConfig = (id: any) => {
 };
 export const EditShowroom = (id: any, data: any) => {
   return EditFunc(`shops/showrooms/${id}`, data, 'PATCH');
+};
+export const AddProductsShowroom = (id: any, data: any) => {
+  return CreateFunc(
+    `shops/${id}/showroom-products?session_id=${getCookie('sessionid')}`,
+    data
+  );
 };
