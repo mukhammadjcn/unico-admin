@@ -20,7 +20,7 @@ import {
 import { OptionProps } from 'antd/es/mentions';
 import { useSearchParams } from 'react-router-dom';
 import { Ishop } from './type';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import './main.css';
 
 function App() {
@@ -185,48 +185,54 @@ function App() {
 
   return (
     <div className="home">
-      {!searchParams.get('bannerId') && (
-        <div
-          style={{
-            gap: 16,
-            marginTop: 16,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Upload
-            beforeUpload={onSelectFile}
-            showUploadList={false}
-            accept="image/*"
-          >
-            <Button
-              type="primary"
-              icon={<UploadOutlined />}
-              disabled={!searchParams.get('shop')}
+      <div
+        style={{
+          gap: 16,
+          marginTop: 16,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Button icon={<ArrowLeftOutlined />}>
+          <a href={'/dashboard/shops/showroom/'}>Orqaga qaytish</a>
+        </Button>
+
+        {!searchParams.get('bannerId') && (
+          <>
+            <Upload
+              beforeUpload={onSelectFile}
+              showUploadList={false}
+              accept="image/*"
             >
-              Asosiy rasmni yuklash
-            </Button>
-          </Upload>
+              <Button
+                type="primary"
+                icon={<UploadOutlined />}
+                disabled={!searchParams.get('shop')}
+              >
+                Asosiy rasmni yuklash
+              </Button>
+            </Upload>
 
-          <Select
-            allowClear
-            options={shops}
-            style={{ width: 200 }}
-            defaultValue={shop && Number(shop)}
-            placeholder="Select the shop"
-            onChange={(id) => {
-              handleMakeParams('shop', id);
-              id && getProducts(id);
+            <Select
+              allowClear
+              options={shops}
+              style={{ width: 200 }}
+              defaultValue={shop && Number(shop)}
+              placeholder="Select the shop"
+              onChange={(id) => {
+                handleMakeParams('shop', id);
+                id && getProducts(id);
 
-              handleMakeParams('bannerId', '');
-              setSelectedFile('');
-              setPreview('');
-              setBanner('');
-            }}
-          />
-        </div>
-      )}
+                handleMakeParams('bannerId', '');
+                setSelectedFile('');
+                setPreview('');
+                setBanner('');
+              }}
+            />
+          </>
+        )}
+      </div>
 
       <div
         style={{
